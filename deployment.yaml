@@ -1,0 +1,43 @@
+apiVersion: extensions/v1beta1
+kind: Deployment
+metadata:
+  name: AzureDevOps.PullRequestCheckService
+spec:
+  replicas: 3
+  strategy:
+    rollingUpdate:
+      maxSurge: 1
+      maxUnavailable: 1
+    type: RollingUpdate
+  template:
+    metadata:
+      labels:
+        app: AzureDevOps.PullRequestCheckService
+    spec:
+      containers:
+      - name: AzureDevOps.pullrequestcheckservice
+        image: {dockerRegistry}/AzureDevOps.pullrequestcheckservice:latest
+        env:
+        - name: AzureDevOps.PullRequestCheckService__DevOpsServer__url
+          value: "{URL}"
+        - name: AzureDevOps.PullRequestCheckService__DevOpsServer__Collection
+          value: "{Collection}"
+        - name: AzureDevOps.PullRequestCheckService__DevOpsServer__AccessToken
+          value: "{PAT}"
+        imagePullPolicy: Always
+        ports:
+        - containerPort: 8080
+        livenessProbe:
+          httpGet:
+            path: /health
+            port: 8080
+          initialDelaySeconds: 30
+          timeoutSeconds: 10
+        readinessProbe:
+          httpGet:
+            path: /health
+            port: 8080
+          initialDelaySeconds: 5
+          timeoutSeconds: 10
+      imagePullSecrets:
+      - name: regcred
