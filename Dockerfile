@@ -1,5 +1,5 @@
 ﻿# REDHAT Docker file
-FROM dotnet/dotnet-31-rhel7 AS build-env
+FROM nexus.shtormtech.ru:5000/dotnet/dotnet-31-rhel7 AS build-env
 WORKDIR /app
 
 # switch to root
@@ -19,7 +19,7 @@ RUN scl enable rh-dotnet31 -- dotnet restore
 RUN scl enable rh-dotnet31 -- dotnet publish -c Release -o /app/out
 
 # Build runtime image
-FROM dotnet/dotnet-31-runtime-rhel7
+FROM nexus.shtormtech.ru:5000/dotnet/dotnet-31-runtime-rhel7
 
 WORKDIR /app
 COPY --from=build-env /app/out .
