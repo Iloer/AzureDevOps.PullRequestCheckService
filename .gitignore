@@ -329,3 +329,5 @@ ASALocalRun/
 # MFractors (Xamarin productivity tool) working folder 
 .mfractor/
 appsettings.Development.json
+*.user.yaml
+/Rancher/config

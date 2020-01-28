@@ -1,9 +1,15 @@
-apiVersion: extensions/v1beta1
+apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: AzureDevOps.PullRequestCheckService
+  name: pullrequestcheckservice-deployment
+  namespace: pullrequestcheck
+  labels:
+    app: pullrequestcheckservice
 spec:
-  replicas: 3
+  replicas: 1
+  selector:
+    matchLabels:
+      app: pullrequestcheckservice
   strategy:
     rollingUpdate:
       maxSurge: 1
@@ -12,17 +18,17 @@ spec:
   template:
     metadata:
       labels:
-        app: AzureDevOps.PullRequestCheckService
+        app: pullrequestcheckservice
     spec:
       containers:
-      - name: AzureDevOps.pullrequestcheckservice
-        image: {dockerRegistry}/AzureDevOps.pullrequestcheckservice:latest
+      - name: azuredevops-pullrequestcheckservice
+        image: {dockerRegistry}/azuredevops.pullrequestcheckservice:latest
         env:
-        - name: AzureDevOps.PullRequestCheckService__DevOpsServer__url
+        - name: DevOpsServer__url
           value: "{URL}"
-        - name: AzureDevOps.PullRequestCheckService__DevOpsServer__Collection
+        - name: DevOpsServer__Collection
           value: "{Collection}"
-        - name: AzureDevOps.PullRequestCheckService__DevOpsServer__AccessToken
+        - name: DevOpsServer__AccessToken
           value: "{PAT}"
         imagePullPolicy: Always
         ports:
