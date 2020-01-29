@@ -9,7 +9,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 
-namespace AzureDevOps.PullRequestCheckService.Checkers
+namespace AzureDevOps.PullRequestCheckService.CheckerServices
 {
     public static class CodeCoverage
     {

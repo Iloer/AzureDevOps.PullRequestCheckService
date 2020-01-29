@@ -2,8 +2,10 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using AzureDevOps.PullRequestCheckService.CheckerServices;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
@@ -19,7 +21,9 @@ namespace AzureDevOps.PullRequestCheckService
             var Config = new ConfigurationBuilder()
                 .SetBasePath(env.ContentRootPath)
                 .AddJsonFile("appsettings.json")
+                .AddJsonFile($"appsettings.{env.EnvironmentName}.json")
                 .AddEnvironmentVariables();
+            Configuration = Config.Build();
         }
         public IConfiguration Configuration { get; }
 
@@ -28,6 +32,8 @@ namespace AzureDevOps.PullRequestCheckService
         {
             services.AddControllers();
             services.AddHealthChecks();
+            services.AddScoped<IAuthorReviewService, AuthorReviewService>();
+            services.Configure<DevOpsServerConfiguration>(Configuration.GetSection("DevOpsServerConfiguration"));
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
@@ -45,6 +51,7 @@ namespace AzureDevOps.PullRequestCheckService
             app.UseEndpoints(endpoints =>
             {
                 endpoints.MapControllers();
+                endpoints.MapGet("/", context => context.Response.WriteAsync(nameof(PullRequestCheckService)));
             });
 
             app.UseHealthChecks("/health");
