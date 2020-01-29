@@ -50,6 +50,8 @@ namespace AzureDevOps.PullRequestCheckService.Controllers
 
             if (data.Resource.Status.Equals("active", StringComparison.OrdinalIgnoreCase))
             {
+                //TODO: "Забытые" таски не лучшее решение, но ресиверу хука незачем ожидать ее завершения.
+                //в ддальнейшем переделать на складывание ресивером событий в очередь, а чекерам работать по очереди.
                 Task.Run(() => _authorReviewService.AuthorReviewCheck(projectId, repoId, pullRequestId));
             }
             else

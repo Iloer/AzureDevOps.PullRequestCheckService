@@ -18,11 +18,24 @@ namespace AzureDevOps.PullRequestCheckService.CheckerServices
 
         public AuthorReviewService(IOptions<DevOpsServerConfiguration> config, ILogger<AuthorReviewService> logger)
         {
-            _config = config.Value;
+            _logger = logger;
+            _config = config?.Value;
+
+            if (_config == null)
+                throw new ArgumentNullException("Config is null");
+            
+            if (string.IsNullOrWhiteSpace(_config.URL))
+                throw new ArgumentNullException("DevOpsServerConfiguration.URL is null");
+            
+            if (string.IsNullOrWhiteSpace(_config.Collection))
+                throw new ArgumentNullException("DevOpsServerConfiguration.Collection is null");
+            if (string.IsNullOrWhiteSpace(_config.AccessToken))
+                throw new ArgumentNullException("DevOpsServerConfiguration.AccessToken is null");
+
             VssCredentials creds = new VssBasicCredential(string.Empty, _config.AccessToken);
             _connection = new VssConnection(new Uri($"{_config.URL}/{_config.Collection}"), creds);
-            _logger = logger;
             _logger.LogInformation($"[{nameof(AuthorReviewService)}] CREATED.");
+
         }
 
         public async Task AuthorReviewCheck(string projectId, string repoId, int pullRequestId)

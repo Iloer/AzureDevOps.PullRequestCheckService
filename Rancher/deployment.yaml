@@ -24,11 +24,11 @@ spec:
       - name: azuredevops-pullrequestcheckservice
         image: {dockerRegistry}/azuredevops.pullrequestcheckservice:latest
         env:
-        - name: DevOpsServer__url
+        - name: DevOpsServerConfiguration__URL
           value: "{URL}"
-        - name: DevOpsServer__Collection
+        - name: DevOpsServerConfiguration__Collection
           value: "{Collection}"
-        - name: DevOpsServer__AccessToken
+        - name: DevOpsServerConfigurationr__AccessToken
           value: "{PAT}"
         imagePullPolicy: Always
         ports:
