@@ -4,13 +4,14 @@ using Microsoft.TeamFoundation.SourceControl.WebApi;
 using Microsoft.VisualStudio.Services.Common;
 using Microsoft.VisualStudio.Services.WebApi;
 using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Text.Json;
 using System.Threading.Tasks;
 
 namespace AzureDevOps.PullRequestCheckService.CheckerServices
 {
-    public class AuthorReviewService : IAuthorReviewService
+    public class AuthorReviewService : IPullRequestCheckService
     {
         private readonly VssConnection _connection;
         private readonly ILogger<AuthorReviewService> _logger;
@@ -38,11 +39,11 @@ namespace AzureDevOps.PullRequestCheckService.CheckerServices
 
         }
 
-        public async Task AuthorReviewCheck(string projectId, string repoId, int pullRequestId)
+        public async Task Check(string projectId, string repoId, int pullRequestId, List<string> args = null )
         {
             try
             {
-                _logger.LogInformation($"[{nameof(AuthorReviewCheck)}] START {{pullRequestId:{pullRequestId}}}");
+                _logger.LogInformation($"[{nameof(Check)}] START {{pullRequestId:{pullRequestId}}}");
                 GitHttpClient gitClient = _connection.GetClient<GitHttpClient>();
                 var resState = GitStatusState.NotApplicable;
                 string description;
@@ -51,12 +52,12 @@ namespace AzureDevOps.PullRequestCheckService.CheckerServices
 
                 if (pr == null)
                 {
-                    _logger.LogWarning($"[{nameof(AuthorReviewCheck)}] GetPullRequestByIdAsync: PullRequest not found");
+                    _logger.LogWarning($"[{nameof(Check)}] GetPullRequestByIdAsync: PullRequest not found");
                     return;
                 }
 
                 var author = pr.CreatedBy.UniqueName;
-                _logger.LogInformation($"[{nameof(AuthorReviewCheck)}] GetPullRequestByIdAsync ok! {{author:{author}}}");
+                _logger.LogInformation($"[{nameof(Check)}] GetPullRequestByIdAsync ok! {{author:{author}}}");
 
                 var reviewer = pr.Reviewers.FirstOrDefault(v => v.UniqueName == author);
 
@@ -96,7 +97,7 @@ namespace AzureDevOps.PullRequestCheckService.CheckerServices
                 };
                 // set PR status
                 await gitClient.CreatePullRequestStatusAsync(status, repoId, pullRequestId);
-                _logger.LogInformation($"[{nameof(AuthorReviewCheck)}] CreatePullRequestStatusAsync ok! " +
+                _logger.LogInformation($"[{nameof(Check)}] CreatePullRequestStatusAsync ok! " +
                     $"{{pullRequestId:{pullRequestId}," +
                     $"author:{author}," +
                     $"status:{{" +
@@ -111,7 +112,7 @@ namespace AzureDevOps.PullRequestCheckService.CheckerServices
             }
             finally
             {
-                _logger.LogInformation($"[{nameof(AuthorReviewCheck)}] COMPLETED");
+                _logger.LogInformation($"[{nameof(Check)}] COMPLETED");
             }
         }
     }

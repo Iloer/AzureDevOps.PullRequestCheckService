@@ -17,8 +17,8 @@ namespace AzureDevOps.PullRequestCheckService.Controllers
     {
         private readonly IConfiguration _config;
         private readonly ILogger _logger;
-        private readonly IAuthorReviewService _authorReviewService;
-        public PullRequestsController(IConfiguration configuration, ILogger<PullRequestsController> logger, IAuthorReviewService authorReviewService)
+        private readonly IPullRequestCheckService _authorReviewService;
+        public PullRequestsController(IConfiguration configuration, ILogger<PullRequestsController> logger, IPullRequestCheckService authorReviewService)
         {
             _config = configuration;
             _logger = logger;
@@ -52,7 +52,7 @@ namespace AzureDevOps.PullRequestCheckService.Controllers
             {
                 //TODO: "Забытые" таски не лучшее решение, но ресиверу хука незачем ожидать ее завершения.
                 //в ддальнейшем переделать на складывание ресивером событий в очередь, а чекерам работать по очереди.
-                Task.Run(() => _authorReviewService.AuthorReviewCheck(projectId, repoId, pullRequestId));
+                Task.Run(() => _authorReviewService.Check(projectId, repoId, pullRequestId));
             }
             else
             {

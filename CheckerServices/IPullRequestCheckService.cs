@@ -10,8 +10,8 @@ using System.Threading.Tasks;
 
 namespace AzureDevOps.PullRequestCheckService.CheckerServices
 {
-    public interface IAuthorReviewService
+    public interface IPullRequestCheckService
     {
-        public Task AuthorReviewCheck(string projectId, string repoId, int pullRequestId);
+        public Task Check(string projectId, string repoId, int pullRequestId, List<string> args = null);
     }
 }
