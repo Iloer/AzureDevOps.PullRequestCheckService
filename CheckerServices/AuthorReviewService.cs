@@ -40,7 +40,7 @@ namespace AzureDevOps.PullRequestCheckService.CheckerServices
 
         }
 
-        public async Task Check(string projectId, string repoId, int pullRequestId, List<string> args = null )
+        public async Task Check(string projectId, string repoId, int pullRequestId, Dictionary<string, string> args = null )
         {
             try
             {

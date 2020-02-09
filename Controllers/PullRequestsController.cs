@@ -36,12 +36,12 @@ namespace AzureDevOps.PullRequestCheckService.Controllers
             var repoId = data.Resource.Repository.Id;
             var pullRequestId = data.Resource.PullRequestId;
             var projectId = data.Resource.Repository.Project.Id;
-
+            
             if (data.Resource.Status.Equals("active", StringComparison.OrdinalIgnoreCase))
             {
                 //TODO: "Забытые" таски не лучшее решение, но ресиверу хука незачем ожидать ее завершения.
                 //в ддальнейшем переделать на складывание ресивером событий в очередь, а чекерам работать по очереди.
-                Task.Run(() => _codeCoverageService.Check(projectId, repoId, pullRequestId));
+                Task.Run(() => _codeCoverageService.Check(projectId, repoId, pullRequestId, HttpContext.Request.Query.toDictionary()));
             }
             else
             {
@@ -63,7 +63,7 @@ namespace AzureDevOps.PullRequestCheckService.Controllers
             {
                 //TODO: "Забытые" таски не лучшее решение, но ресиверу хука незачем ожидать ее завершения.
                 //в ддальнейшем переделать на складывание ресивером событий в очередь, а чекерам работать по очереди.
-                Task.Run(() => _authorReviewService.Check(projectId, repoId, pullRequestId));
+                Task.Run(() => _authorReviewService.Check(projectId, repoId, pullRequestId, HttpContext.Request.Query.toDictionary()));
             }
             else
             {

@@ -41,7 +41,7 @@ namespace AzureDevOps.PullRequestCheckService.CheckerServices
             _logger.LogInformation($"[{nameof(CodeCoverageService)}] CREATED.");
         }
 
-        public async Task Check(string projectId, string repoId, int pullRequestId, List<string> args = null)
+        public async Task Check(string projectId, string repoId, int pullRequestId, Dictionary<string, string> args = null)
         {
             try
             {
@@ -81,10 +81,24 @@ namespace AzureDevOps.PullRequestCheckService.CheckerServices
                         {
                             var buildId = evaluation.Context.Value<int>("buildId");
                             var cover = await GetCodeCoverageForBuild(projectId, buildId);
-                            resState = GitStatusState.Succeeded;
+
+                            int quality = 0;
+                            if (args.TryGetValue("quality", out string qualityStr) && cover != null)
+                            {
+                                if (!int.TryParse(qualityStr, out quality))
+                                {
+                                    _logger.LogWarning(message: $"[{nameof(Check)}] param \"Quality\"({qualityStr}) is not parse to int");
+                                }
+                                resState = quality <= cover ? GitStatusState.Succeeded : GitStatusState.Error;
+                            }
+                            else
+                            {
+                                resState = GitStatusState.Succeeded;
+                            }
+
                             description = cover != null ? $"CodeCoverage = {cover:F2}%" : "CodeCoverage = (не определен)";
                             targetUrl = $"{buildUrl}/results?buildId={buildId}&view=results";
-                            break;
+                            break; 
                         }
                     case PolicyEvaluationStatus.NotApplicable:
                     default:
@@ -114,7 +128,8 @@ namespace AzureDevOps.PullRequestCheckService.CheckerServices
                                             $"}}" +
                                        $"}}");
                 // set PR status
-                var prStatus = await gitClient.CreatePullRequestStatusAsync(status, repoId, pullRequestId);
+                //var prStatus = await gitClient.CreatePullRequestStatusAsync(status, repoId, pullRequestId);
+                string prStatus = "";
                 _logger.LogInformation($"[{nameof(Check)}] CreatePullRequestStatusAsync(status:{status}, repositoryId:{repoId}, pullRequestId:{pullRequestId}) success: {JsonConvert.SerializeObject(prStatus)}");
             }
             catch (Exception e)
