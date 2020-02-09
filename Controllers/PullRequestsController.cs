@@ -18,25 +18,37 @@ namespace AzureDevOps.PullRequestCheckService.Controllers
         private readonly IConfiguration _config;
         private readonly ILogger _logger;
         private readonly IPullRequestCheckService _authorReviewService;
-        public PullRequestsController(IConfiguration configuration, ILogger<PullRequestsController> logger, IPullRequestCheckService authorReviewService)
+        private readonly IPullRequestCheckService _codeCoverageService;
+        public PullRequestsController(IConfiguration configuration, 
+                                      ILogger<PullRequestsController> logger,
+                                      IPullRequestCheckService authorReviewService,
+                                      IPullRequestCheckService codeCoverageService)
         {
             _config = configuration;
             _logger = logger;
             _authorReviewService = authorReviewService;
+            _codeCoverageService = codeCoverageService;
         }
 
         [HttpPost("CheckCodeCoverage")]
         public async Task<ActionResult<string>> CheckCodeCoverage([FromBody] GitPullRequestUpdatedPayload data)
         {
-            string pat = _config.GetSection("DevOpsServer").GetValue<string>("AccessToken");
-            string collectionUri = $"{_config.GetSection("DevOpsServer").GetValue<string>("url")}/{_config.GetSection("DevOpsServer").GetValue<string>("Collection")}";
             var repoId = data.Resource.Repository.Id;
             var pullRequestId = data.Resource.PullRequestId;
             var projectId = data.Resource.Repository.Project.Id;
 
             if (data.Resource.Status.Equals("active", StringComparison.OrdinalIgnoreCase))
-                CheckerServices.CodeCoverage.CheckPrCodeCoverageForBuild(collectionUri, pat, projectId, repoId, pullRequestId);
-
+            {
+                //TODO: "Забытые" таски не лучшее решение, но ресиверу хука незачем ожидать ее завершения.
+                //в ддальнейшем переделать на складывание ресивером событий в очередь, а чекерам работать по очереди.
+                //Task.Run(() => _codeCoverageService.Check(projectId, repoId, pullRequestId));
+                _codeCoverageService.Check(projectId, repoId, pullRequestId);
+            }
+            else
+            {
+                _logger.LogInformation($"PullRequest-{pullRequestId} is inactive. Check skipped.");
+            }
+            
             return Ok("success");
         }
 

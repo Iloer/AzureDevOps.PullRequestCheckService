@@ -16,7 +16,7 @@ namespace AzureDevOps.PullRequestCheckService
 {
     public class Startup
     {
-        public Startup(IWebHostEnvironment env, IConfiguration configuration)
+        public Startup(IWebHostEnvironment env)
         {
             var Config = new ConfigurationBuilder()
                 .SetBasePath(env.ContentRootPath)
@@ -33,6 +33,7 @@ namespace AzureDevOps.PullRequestCheckService
             services.AddControllers();
             services.AddHealthChecks();
             services.AddScoped<IPullRequestCheckService, AuthorReviewService>();
+            services.AddScoped<IPullRequestCheckService, CodeCoverageService>();
             services.Configure<DevOpsServerConfiguration>(Configuration.GetSection("DevOpsServerConfiguration"));
         }
 
