@@ -31,7 +31,7 @@ namespace AzureDevOps.PullRequestCheckService.Controllers
         }
 
         [HttpPost("CheckCodeCoverage")]
-        public async Task<ActionResult<string>> CheckCodeCoverage([FromBody] GitPullRequestUpdatedPayload data)
+        public ActionResult<string> CheckCodeCoverage([FromBody] GitPullRequestUpdatedPayload data)
         {
             var repoId = data.Resource.Repository.Id;
             var pullRequestId = data.Resource.PullRequestId;
@@ -47,14 +47,14 @@ namespace AzureDevOps.PullRequestCheckService.Controllers
             {
                 _logger.LogInformation($"PullRequest-{pullRequestId} is inactive. Check skipped.");
             }
-            
+
             return Ok("success");
         }
 
         [HttpPost("CheckAuthorReview")]
-        public async Task<ActionResult<string>> CheckAuthorReview([FromBody] GitPullRequestUpdatedPayload data)
+        public ActionResult<string> CheckAuthorReview([FromBody] GitPullRequestUpdatedPayload data)
         {
-            
+
             var repoId = data.Resource.Repository.Id;
             var pullRequestId = data.Resource.PullRequestId;
             var projectId = data.Resource.Repository.Project.Id;
