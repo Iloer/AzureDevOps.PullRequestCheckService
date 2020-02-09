@@ -10,7 +10,7 @@ using System.Threading.Tasks;
 
 namespace AzureDevOps.PullRequestCheckService.CheckerServices
 {
-    public interface IPullRequestCheckService
+    public interface ICodeCoverageService
     {
         public Task Check(string projectId, string repoId, int pullRequestId, List<string> args = null);
     }

@@ -12,7 +12,7 @@ using System.Threading.Tasks;
 
 namespace AzureDevOps.PullRequestCheckService.CheckerServices
 {
-    public class AuthorReviewService : IPullRequestCheckService
+    public class AuthorReviewService : IAuthorReviewService
     {
         private readonly VssConnection _connection;
         private readonly ILogger<AuthorReviewService> _logger;
@@ -110,7 +110,7 @@ namespace AzureDevOps.PullRequestCheckService.CheckerServices
             }
             catch (Exception e)
             {
-                _logger.LogError($"Не удалось выполнить проверку: {e.ToString()}");
+                _logger.LogError($"Check FAILED: {e.ToString()}");
             }
             finally
             {

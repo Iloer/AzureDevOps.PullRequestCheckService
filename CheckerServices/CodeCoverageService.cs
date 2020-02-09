@@ -14,7 +14,7 @@ using System.Threading.Tasks;
 
 namespace AzureDevOps.PullRequestCheckService.CheckerServices
 {
-    public class CodeCoverageService : IPullRequestCheckService
+    public class CodeCoverageService : ICodeCoverageService
     {
         private readonly VssConnection _connection;
         private readonly ILogger<CodeCoverageService> _logger;

@@ -32,8 +32,8 @@ namespace AzureDevOps.PullRequestCheckService
         {
             services.AddControllers();
             services.AddHealthChecks();
-            services.AddScoped<IPullRequestCheckService, AuthorReviewService>();
-            services.AddScoped<IPullRequestCheckService, CodeCoverageService>();
+            services.AddScoped<IAuthorReviewService, AuthorReviewService>();
+            services.AddScoped<ICodeCoverageService, CodeCoverageService>();
             services.Configure<DevOpsServerConfiguration>(Configuration.GetSection("DevOpsServerConfiguration"));
         }
 
