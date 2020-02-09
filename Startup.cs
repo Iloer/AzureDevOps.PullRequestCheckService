@@ -19,7 +19,7 @@ namespace AzureDevOps.PullRequestCheckService
         public Startup(IWebHostEnvironment env)
         {
             var Config = new ConfigurationBuilder()
-                .SetBasePath(env.ContentRootPath)
+                .SetBasePath(env?.ContentRootPath)
                 .AddJsonFile("appsettings.json", optional: false, reloadOnChange: false)
                 .AddJsonFile($"appsettings.{env.EnvironmentName}.json", optional: true, reloadOnChange: false)
                 .AddEnvironmentVariables();
@@ -38,7 +38,7 @@ namespace AzureDevOps.PullRequestCheckService
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
-        public void Configure(IApplicationBuilder app, IWebHostEnvironment env)
+        public static void Configure(IApplicationBuilder app, IWebHostEnvironment env)
         {
             if (env.IsDevelopment())
             {
