@@ -3,6 +3,7 @@ using Microsoft.Extensions.Options;
 using Microsoft.TeamFoundation.SourceControl.WebApi;
 using Microsoft.VisualStudio.Services.Common;
 using Microsoft.VisualStudio.Services.WebApi;
+using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -57,7 +58,7 @@ namespace AzureDevOps.PullRequestCheckService.CheckerServices
                 }
 
                 var author = pr.CreatedBy.UniqueName;
-                _logger.LogInformation($"[{nameof(Check)}] GetPullRequestByIdAsync ok! {{author:{author}}}");
+                _logger.LogInformation($"[{nameof(Check)}] GetPullRequestByIdAsync(project:{projectId}, pullRequestId:{pullRequestId}) success: {{author:{author}}}");
 
                 var reviewer = pr.Reviewers.FirstOrDefault(v => v.UniqueName == author);
 
@@ -95,9 +96,7 @@ namespace AzureDevOps.PullRequestCheckService.CheckerServices
                         Genre = "continuous-integration"
                     }
                 };
-                // set PR status
-                await gitClient.CreatePullRequestStatusAsync(status, repoId, pullRequestId);
-                _logger.LogInformation($"[{nameof(Check)}] CreatePullRequestStatusAsync ok! " +
+                _logger.LogInformation($"[{nameof(Check)}] created new status: " +
                     $"{{pullRequestId:{pullRequestId}," +
                     $"author:{author}," +
                     $"status:{{" +
@@ -105,6 +104,9 @@ namespace AzureDevOps.PullRequestCheckService.CheckerServices
                         $"description:{status.Description},context:{{name:{status.Context.Name},genre:{status.Context.Genre}}}" +
                         $"}}" +
                     $"}}");
+                // set PR status
+                var prStatus = await gitClient.CreatePullRequestStatusAsync(status, repoId, pullRequestId);
+                _logger.LogInformation($"[{nameof(Check)}] CreatePullRequestStatusAsync(status:{status}, repositoryId:{repoId}, pullRequestId:{pullRequestId}) success: {JsonConvert.SerializeObject(prStatus)}");
             }
             catch (Exception e)
             {
