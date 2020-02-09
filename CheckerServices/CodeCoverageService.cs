@@ -7,6 +7,7 @@ using Microsoft.TeamFoundation.TestManagement.WebApi;
 using Microsoft.VisualStudio.Services.Common;
 using Microsoft.VisualStudio.Services.WebApi;
 using Newtonsoft.Json;
+using Newtonsoft.Json.Linq;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -48,6 +49,7 @@ namespace AzureDevOps.PullRequestCheckService.CheckerServices
                 const string evaluationConfigurationType = "Build";
                 string artifactId(string projectId, int pullRequestId) => $"vstfs:///CodeReview/CodeReviewId/{projectId}/{pullRequestId}";
                 string buildUrl = $"{_config.URL}/{_config.Collection}/{projectId}/_build";
+                string statusName = (args!=null) && args.TryGetValue("name", out string name) ? name : "CheckCodeCoverage";
 
                 _logger.LogInformation($"[{nameof(Check)}] BEGIN {{pullRequestId:{pullRequestId}}}");
 
@@ -57,6 +59,16 @@ namespace AzureDevOps.PullRequestCheckService.CheckerServices
                 // получить политики для ПР
                 var evaluations = await policyClient.GetPolicyEvaluationsAsync(projectId, artifactId(projectId, pullRequestId));
                 _logger.LogInformation($"[{nameof(Check)}] GetPolicyEvaluationsAsync(project:{projectId}, artifactId:{artifactId(projectId, pullRequestId)}) success: {{evaluations count:{evaluations.Count}}}");
+
+                var policy = evaluations.FirstOrDefault(x => x.Configuration.Settings.TryGetValue("statusName", out JToken name) 
+                                                        && name.ToString().Equals(statusName, StringComparison.OrdinalIgnoreCase));
+
+                // Если у полученного PullRequest не найдена политика для правила с заданным именем, то не создаем статуса.
+                if (policy == null)
+                {
+                    _logger.LogInformation($"[{nameof(Check)}] SKIPPED. This pull request has no policy");
+                    return;
+                }
 
                 var evaluation = evaluations.FirstOrDefault(x => x.Configuration.Type.DisplayName.Equals(evaluationConfigurationType, StringComparison.OrdinalIgnoreCase));
                 _logger.LogInformation($"[{nameof(Check)}] build evaluation: {JsonConvert.SerializeObject(evaluation)}");
@@ -83,13 +95,15 @@ namespace AzureDevOps.PullRequestCheckService.CheckerServices
                             var cover = await GetCodeCoverageForBuild(projectId, buildId);
 
                             int quality = 0;
-                            if (args.TryGetValue("quality", out string qualityStr) && cover != null)
+                            if ( args != null && args.TryGetValue("quality", out string qualityStr) && (cover != null))
                             {
                                 if (!int.TryParse(qualityStr, out quality))
                                 {
                                     _logger.LogWarning(message: $"[{nameof(Check)}] param \"Quality\"({qualityStr}) is not parse to int");
                                 }
-                                resState = quality <= cover ? GitStatusState.Succeeded : GitStatusState.Error;
+                                resState = (quality <= cover)
+                                    ? GitStatusState.Succeeded 
+                                    : GitStatusState.Error;
                             }
                             else
                             {
@@ -107,7 +121,6 @@ namespace AzureDevOps.PullRequestCheckService.CheckerServices
                         targetUrl = null;
                         break;
                 }
-
                 // New status
                 var status = new GitPullRequestStatus()
                 {
@@ -116,8 +129,8 @@ namespace AzureDevOps.PullRequestCheckService.CheckerServices
                     TargetUrl = targetUrl,
                     Context = new GitStatusContext()
                     {
-                        Name = "CheckCodeCoverageService-checker",
-                        Genre = "continuous-integration"
+                        Name = statusName,
+                        Genre = "PullRequestCheckService"
                     }
                 };
                 _logger.LogInformation($"[{nameof(Check)}] created new status: " +
@@ -127,9 +140,9 @@ namespace AzureDevOps.PullRequestCheckService.CheckerServices
                                             $"description:{status.Description},context:{{name:{status.Context.Name},genre:{status.Context.Genre}}}" +
                                             $"}}" +
                                        $"}}");
+                
                 // set PR status
-                //var prStatus = await gitClient.CreatePullRequestStatusAsync(status, repoId, pullRequestId);
-                string prStatus = "";
+                var prStatus = await gitClient.CreatePullRequestStatusAsync(status, repoId, pullRequestId);
                 _logger.LogInformation($"[{nameof(Check)}] CreatePullRequestStatusAsync(status:{status}, repositoryId:{repoId}, pullRequestId:{pullRequestId}) success: {JsonConvert.SerializeObject(prStatus)}");
             }
             catch (Exception e)
