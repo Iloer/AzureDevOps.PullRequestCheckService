@@ -92,8 +92,8 @@ namespace AzureDevOps.PullRequestCheckService.CheckerServices
                     Description = description,
                     Context = new GitStatusContext()
                     {
-                        Name = "CheckAuthorReview-checker",
-                        Genre = "continuous-integration"
+                        Name = "CheckAuthorReview",
+                        Genre = "PullRequestCheckService"
                     }
                 };
                 _logger.LogInformation($"[{nameof(Check)}] created new status: " +
