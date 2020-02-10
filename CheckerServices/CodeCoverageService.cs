@@ -66,7 +66,7 @@ namespace AzureDevOps.PullRequestCheckService.CheckerServices
                 // Если у полученного PullRequest не найдена политика для правила с заданным именем, то не создаем статуса.
                 if (policy == null)
                 {
-                    _logger.LogInformation($"[{nameof(Check)}] SKIPPED. This pull request has no policy");
+                    _logger.LogInformation($"[{nameof(Check)}] SKIPPED. Pullrequest({pullRequestId}) has no this policy");
                     return;
                 }
 
@@ -152,8 +152,7 @@ namespace AzureDevOps.PullRequestCheckService.CheckerServices
             finally
             {
                 _logger.LogInformation($"[{nameof(Check)}] COMPLETED");
-            }
-            
+            }            
         }
         private async Task<double?> GetCodeCoverageForBuild(String projectId, int buildId)
         {
